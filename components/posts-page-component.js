@@ -68,6 +68,10 @@ document.addEventListener('click', (event) => {
     const token = getToken();
     const postId = likeButton.dataset.postId;
     const post = posts.find((p) => p.id === postId);
+    if (!token) {
+      likeButton.disabled = true;
+      return;
+    }
     if (post.isLiked) {
       dislikePost({ postId, token }).then((data) => {
         post.isLiked = false;
