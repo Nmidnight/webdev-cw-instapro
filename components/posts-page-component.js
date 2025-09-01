@@ -4,7 +4,7 @@ import { posts, goToPage } from '../index.js';
 import { formatDate } from '../utilits/format-date.js';
 import likeActiveIcon from '../assets/images/like-active.svg';
 import likeNotActiveIcon from '../assets/images/like-not-active.svg';
-import { likePost, dislikePost } from '../api.js';
+import { likePost, dislikePost, deletePost, getPosts } from '../api.js';
 import { getToken } from '../index.js';
 
 export function renderPostsPageComponent({ appEl }) {
@@ -21,13 +21,18 @@ export function renderPostsPageComponent({ appEl }) {
         <div class="post-image-container">
           <img class="post-image" src="${post.imageUrl}">
         </div>
-        <div class="post-likes">
-          <button data-post-id="${post.id}" class="like-button">
+        <div class="post-likes" data-post-id="${post.id}">
+          <div class="post-likes-left">
+          <button class="like-button">
             <img src="${post.isLiked ? likeActiveIcon : likeNotActiveIcon}">
           </button>
           <p class="post-likes-text">
             Нравится: <strong>${post.likes.length}</strong>
           </p>
+          </div>
+          <button data-post-id="${post.id}" class="delete-comment-button" title="Удалить пост">
+            Удалить
+          </button>
         </div>
         <p class="post-text">
           <span class="user-name">${post.user.name}</span> ${post.description}
@@ -63,10 +68,12 @@ for (let userEl of document.querySelectorAll('.post-header')) {
 }
 
 document.addEventListener('click', (event) => {
+  let token = '';
+  let postId = '';
   if (event.target.closest('.like-button')) {
     const likeButton = event.target.closest('.like-button');
-    const token = getToken();
-    const postId = likeButton.dataset.postId;
+    token = getToken();
+    postId = event.target.closest('.post-likes').dataset.postId;
     const post = posts.find((p) => p.id === postId);
     if (!token) {
       likeButton.disabled = true;
@@ -83,6 +90,25 @@ document.addEventListener('click', (event) => {
         post.isLiked = true;
         post.likes = data.post.likes;
         renderPostsPageComponent({ appEl: document.querySelector('#app') });
+      });
+    }
+  }
+  if (event.target.closest('.delete-comment-button')) {
+    const deleteCommentButton = event.target.closest('.delete-comment-button');
+    token = getToken();
+    postId = event.target.closest('.post-likes').dataset.postId;
+    if (!token) {
+      deleteCommentButton.disabled = true;
+      return;
+    }
+    if (confirm('Вы уверены, что хотите удалить этот пост?')) {
+      deletePost({ postId, token }).then(() => {
+        getPosts({ token }).then((newPosts) => {
+          posts.length = 0;
+          posts.push(...newPosts);
+
+          renderPostsPageComponent({ appEl: document.querySelector('#app') });
+        });
       });
     }
   }

@@ -1,12 +1,15 @@
 import { renderHeaderComponent } from './header-component.js';
 import { renderUploadImageComponent } from './upload-image-component.js';
+import { addPost } from '../api.js';
+import { getToken, goToPage } from '../index.js';
+import { POSTS_PAGE } from '../routes.js';
 
 export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
   let imageUrl = '';
   let description = '';
 
   const render = () => {
-    // @TODO: Реализовать страницу добавления поста
+    // @TODO: готово
     const appHtml = `
     <div class="page-container">
       <div class="header-container"></div>
@@ -30,12 +33,27 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
 
     appEl.innerHTML = appHtml;
 
-    document.getElementById('add-button').addEventListener('click', () => {
+    const addButton = document.getElementById('add-button');
+
+    const updateButtonState = () => {
+      addButton.disabled = !(description.trim() && imageUrl);
+    };
+
+    addButton.addEventListener('click', () => {
       if (description.trim() && imageUrl) {
-        onAddPostClick({
-          description: description,
-          imageUrl: imageUrl,
-        });
+        addButton.disabled = true;
+        addPost({
+          description,
+          imageUrl,
+          token: getToken(),
+        })
+          .then(() => {
+            goToPage(POSTS_PAGE);
+          })
+          .catch((error) => {
+            console.error(error);
+            addButton.disabled = false;
+          });
       }
     });
 
@@ -46,6 +64,7 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
     const descriptionInput = document.getElementById('description-input');
     descriptionInput.addEventListener('input', (event) => {
       description = event.target.value;
+      updateButtonState();
     });
 
     const uploadImageContainer = appEl.querySelector('.upload-image-container');
@@ -53,6 +72,7 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
       element: uploadImageContainer,
       onImageUrlChange(newImageUrl) {
         imageUrl = newImageUrl;
+        updateButtonState();
       },
     });
   };

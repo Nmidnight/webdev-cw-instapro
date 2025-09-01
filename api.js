@@ -92,7 +92,7 @@ export function dislikePost({ postId, token }) {
 }
 
 export function addPost({ description, imageUrl, token }) {
-  return fetch(postsHost, {
+  return fetch(`${postsHost}`, {
     method: 'POST',
     headers: {
       Authorization: token,
@@ -101,6 +101,17 @@ export function addPost({ description, imageUrl, token }) {
       description,
       imageUrl,
     }),
+  }).then((response) => {
+    return response.json();
+  });
+}
+
+export function deletePost({ postId, token }) {
+  return fetch(`${postsHost}/${postId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: token,
+    },
   }).then((response) => {
     return response.json();
   });
