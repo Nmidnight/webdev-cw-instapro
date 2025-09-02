@@ -1,15 +1,11 @@
 import { renderHeaderComponent } from './header-component.js';
 import { renderUploadImageComponent } from './upload-image-component.js';
-import { addPost } from '../api.js';
-import { getToken, goToPage } from '../index.js';
-import { POSTS_PAGE } from '../routes.js';
 
 export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
   let imageUrl = '';
   let description = '';
 
   const render = () => {
-    // @TODO: готово
     const appHtml = `
     <div class="page-container">
       <div class="header-container"></div>
@@ -42,18 +38,7 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
     addButton.addEventListener('click', () => {
       if (description.trim() && imageUrl) {
         addButton.disabled = true;
-        addPost({
-          description,
-          imageUrl,
-          token: getToken(),
-        })
-          .then(() => {
-            goToPage(POSTS_PAGE);
-          })
-          .catch((error) => {
-            console.error(error);
-            addButton.disabled = false;
-          });
+        onAddPostClick({ description, imageUrl });
       }
     });
 

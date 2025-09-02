@@ -5,7 +5,7 @@ import { formatDate } from '../utilits/format-date.js';
 import likeActiveIcon from '../assets/images/like-active.svg';
 import likeNotActiveIcon from '../assets/images/like-not-active.svg';
 import { likePost, dislikePost, deletePost, getPosts } from '../api.js';
-import { getToken } from '../index.js';
+import { getToken, user } from '../index.js';
 
 export function renderPostsPageComponent({ appEl }) {
   // @TODO: сделано
@@ -30,9 +30,14 @@ export function renderPostsPageComponent({ appEl }) {
             Нравится: <strong>${post.likes.length}</strong>
           </p>
           </div>
-          <button data-post-id="${post.id}" class="delete-comment-button" title="Удалить пост">
-            Удалить
-          </button>
+          ${
+            String(post.user.id) === String(user?._id)
+              ? `<button data-post-id="${post.id}" class="delete-comment-button" title="Удалить пост">
+                 Удалить
+               </button>`
+              : ''
+          }
+          
         </div>
         <p class="post-text">
           <span class="user-name">${post.user.name}</span> ${post.description}
@@ -57,13 +62,6 @@ export function renderPostsPageComponent({ appEl }) {
 
   renderHeaderComponent({
     element: document.querySelector('.header-container'),
-  });
-}
-for (let userEl of document.querySelectorAll('.post-header')) {
-  userEl.addEventListener('click', () => {
-    goToPage(USER_POSTS_PAGE, {
-      userId: userEl.dataset.userId,
-    });
   });
 }
 
@@ -97,6 +95,9 @@ document.addEventListener('click', (event) => {
     const deleteCommentButton = event.target.closest('.delete-comment-button');
     token = getToken();
     postId = event.target.closest('.post-likes').dataset.postId;
+    if (posts.find((p) => p.id === postId).user.id === user.id) {
+      deleteCommentButton.style.display = 'block';
+    }
     if (!token) {
       deleteCommentButton.disabled = true;
       return;
@@ -111,5 +112,12 @@ document.addEventListener('click', (event) => {
         });
       });
     }
+  }
+  for (let userEl of document.querySelectorAll('.post-header')) {
+    userEl.addEventListener('click', () => {
+      goToPage(USER_POSTS_PAGE, {
+        userId: userEl.dataset.userId,
+      });
+    });
   }
 });
